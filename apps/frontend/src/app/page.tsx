@@ -67,7 +67,7 @@ export default function Landing() {
                     </div>
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href="/signin">Sign in</Link>
+                            <Link href="/auth/signin">Sign in</Link>
                         </Button>
                         <Button size="sm" asChild>
                             <Link href="/dashboard">
@@ -126,7 +126,7 @@ export default function Landing() {
 
                     <div className="flex items-center justify-center gap-4 mt-10">
                         <Button size="lg" asChild className="h-12 px-8 text-base">
-                            <Link href="/signup">
+                            <Link href="/auth/signup">
                                 Start building
                                 <ArrowRight className="size-4" />
                             </Link>
@@ -276,7 +276,7 @@ export default function Landing() {
                         Create a free account and start making API calls in minutes.
                     </p>
                     <Button size="lg" asChild className="mt-8 h-12 px-8 text-base">
-                        <Link href="/signup">
+                        <Link href="/auth/signup">
                             Create free account
                             <ArrowRight className="size-4" />
                         </Link>

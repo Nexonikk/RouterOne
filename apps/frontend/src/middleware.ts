@@ -2,19 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 
 export function middleware(req: NextRequest) {
     const token = req.cookies.get("auth")?.value
-
     const { pathname } = req.nextUrl
 
-    const isAuthPage = pathname === "/signin" || pathname === "/signup"
-
+    const isAuthPage = pathname.startsWith("/auth")
     const isProtectedPage = pathname.startsWith("/dashboard")
 
-    // Not logged in -> block dashboard
     if (!token && isProtectedPage) {
-        return NextResponse.redirect(new URL("/signin", req.url))
+        return NextResponse.redirect(new URL("/auth/signin", req.url))
     }
 
-    // Logged in -> block auth pages
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/dashboard", req.url))
     }
@@ -23,5 +19,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/signin", "/signup"],
+    matcher: ["/dashboard/:path*", "/auth/:path*"],
 }
