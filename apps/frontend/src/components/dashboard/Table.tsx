@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils"
 export function TableShell({ children }: { children: ReactNode }) {
     return (
         <div className="overflow-hidden rounded-xl border border-border/50 bg-card/30">
-            <table className="w-full text-sm">{children}</table>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm whitespace-nowrap md:whitespace-normal">{children}</table>
+            </div>
         </div>
     )
 }
