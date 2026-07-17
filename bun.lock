@@ -6,6 +6,7 @@
       "name": "routerone",
       "dependencies": {
         "@elysiajs/eden": "^1.4.8",
+        "@prisma/client": "^7.8.0",
       },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
@@ -18,6 +19,7 @@
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-hooks": "^7.1.1",
         "prettier": "^3.7.4",
+        "prisma": "^7.8.0",
         "turbo": "^2.8.6",
         "typescript": "5.9.2",
         "typescript-eslint": "^8.64.0",
@@ -84,14 +86,14 @@
       "name": "db",
       "dependencies": {
         "@prisma/adapter-pg": "^7.4.0",
-        "@prisma/client": "^7.4.0",
+        "@prisma/client": "^7.8.0",
         "dotenv": "^17.3.1",
         "pg": "^8.18.0",
       },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/pg": "^8.16.0",
-        "prisma": "^7.4.0",
+        "prisma": "^7.8.0",
       },
       "peerDependencies": {
         "typescript": "^5",

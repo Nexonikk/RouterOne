@@ -21,6 +21,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.7.4",
+    "prisma": "^7.8.0",
     "turbo": "^2.8.6",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.64.0"
@@ -34,6 +35,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "@elysiajs/eden": "^1.4.8"
+    "@elysiajs/eden": "^1.4.8",
+    "@prisma/client": "^7.8.0"
   }
 }
