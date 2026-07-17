@@ -28,6 +28,21 @@ export default tseslint.config(js.configs.recommended, ...tseslint.configs.recom
         "@typescript-eslint/no-namespace": "off",
 
         "@next/next/no-img-element": "off",
+
+        // Add this
+        "padding-line-between-statements": [
+            "error",
+            {
+                blankLine: "always",
+                prev: "function",
+                next: "*",
+            },
+            {
+                blankLine: "always",
+                prev: "*",
+                next: "function",
+            },
+        ],
     },
 
     settings: {

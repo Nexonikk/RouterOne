@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 model User {
   id                 Int                 @id @default(autoincrement())
   email              String              @unique
@@ -16,21 +17,30 @@ model User {
   conversations      Conversation[]
 }
 
+model PendingUser {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password_hash String
+  otp_hash      String
+  expires_at    DateTime
+  created_at    DateTime @default(now())
+}
+
 model ApiKey {
-  id            Int            @id @default(autoincrement())
-  userId        Int
-  name          String
-  apiKey        String         @unique
-  disabled      Boolean        @default(false)
-  deleted       Boolean        @default(false)
-  lastUsed      DateTime?
-  creditsConsumed  Int        @default(0)
-  user          User           @relation(fields: [userId], references: [id])
-  conversations Conversation[]
+  id              Int            @id @default(autoincrement())
+  userId          Int
+  name            String
+  apiKey          String         @unique
+  disabled        Boolean        @default(false)
+  deleted         Boolean        @default(false)
+  lastUsed        DateTime?
+  creditsConsumed Int            @default(0)
+  user            User           @relation(fields: [userId], references: [id])
+  conversations   Conversation[]
 }
 
 model Company {
-  id      Int    @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   name    String
   website String
   models  Model[]
