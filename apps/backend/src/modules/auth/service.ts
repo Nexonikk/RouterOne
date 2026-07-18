@@ -82,7 +82,7 @@ export abstract class AuthService {
             return { valid: false, message: "OTP expired" }
         }
 
-        await prisma.user.create({
+        const createdUser = await prisma.user.create({
             data: {
                 email: user.email,
                 password: user.password_hash,
@@ -95,7 +95,11 @@ export abstract class AuthService {
             },
         })
 
-        return { valid: true, userId: user.id.toString(), message: "OTP verified successfully" }
+        return {
+            valid: true,
+            userId: createdUser.id.toString(),
+            message: "OTP verified successfully",
+        }
     }
 
     static async getUserDetails(id: number) {

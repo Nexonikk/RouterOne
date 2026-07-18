@@ -2,7 +2,7 @@
 
 import { useElysiaClient } from "@/providers/Eden"
 import { useMutation } from "@tanstack/react-query"
-import { useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -16,14 +16,27 @@ import {
     CardContent,
     CardFooter,
 } from "@/components/ui/card"
-import { ArrowRight, Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Mail, Lock, Loader2, AlertCircle, CheckCircle2, Check, X } from "lucide-react"
 import { Logo } from "@/components/Logo"
+import { useAuthStore } from "@/store/authStore"
+import { isValidEmail, validatePassword } from "@/zod/auth"
 
 export default function Signup() {
-    const emailRef = useRef<HTMLInputElement>(null)
-    const passwordRef = useRef<HTMLInputElement>(null)
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [emailTouched, setEmailTouched] = useState(false)
+    const [passwordTouched, setPasswordTouched] = useState(false)
+
     const elysiaClient = useElysiaClient() as any
     const router = useRouter()
+    const setPendingEmail = useAuthStore((s) => s.setPendingEmail)
+
+    const emailError =
+        emailTouched && email.length > 0 && !isValidEmail(email)
+            ? "Enter a valid email address"
+            : null
+
+    const passwordCheck = validatePassword(password)
 
     const mutation = useMutation({
         mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -37,10 +50,14 @@ export default function Signup() {
             }
             return response.data
         },
-        onSuccess: () => {
-            setTimeout(() => router.push("/auth/signin"), 1500)
+        onSuccess: (_, variables) => {
+            setPendingEmail(variables.email)
+            setTimeout(() => router.push("/auth/verify-otp"), 800)
         },
     })
+
+    const canSubmit =
+        isValidEmail(email) && passwordCheck.valid && !mutation.isPending && !mutation.isSuccess
 
     return (
         <div className="dark min-h-screen relative flex items-center justify-center bg-background overflow-hidden">
@@ -95,10 +112,10 @@ export default function Signup() {
                             className="space-y-4"
                             onSubmit={(e) => {
                                 e.preventDefault()
-                                mutation.mutate({
-                                    email: emailRef.current!.value,
-                                    password: passwordRef.current!.value,
-                                })
+                                setEmailTouched(true)
+                                setPasswordTouched(true)
+                                if (!isValidEmail(email) || !passwordCheck.valid) return
+                                mutation.mutate({ email, password })
                             }}
                         >
                             <div className="space-y-2">
@@ -107,13 +124,20 @@ export default function Signup() {
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
                                     <Input
                                         id="email"
-                                        ref={emailRef}
                                         type="email"
                                         placeholder="you@example.com"
                                         className="pl-10 h-10"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        onBlur={() => setEmailTouched(true)}
                                         required
                                     />
                                 </div>
+                                {emailError && (
+                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                        <AlertCircle className="size-3" /> {emailError}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -122,13 +146,44 @@ export default function Signup() {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
                                     <Input
                                         id="password"
-                                        ref={passwordRef}
                                         type="password"
                                         placeholder="Min. 8 characters"
                                         className="pl-10 h-10"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        onBlur={() => setPasswordTouched(true)}
                                         required
                                     />
                                 </div>
+                                {passwordTouched && password.length > 0 && (
+                                    <ul className="space-y-1 pt-1">
+                                        {[
+                                            "At least 8 characters",
+                                            "One lowercase letter",
+                                            "One uppercase letter",
+                                            "One number",
+                                        ].map((rule) => {
+                                            const met = !passwordCheck.errors.includes(rule)
+                                            return (
+                                                <li
+                                                    key={rule}
+                                                    className={`text-xs flex items-center gap-1.5 ${
+                                                        met
+                                                            ? "text-emerald-400"
+                                                            : "text-muted-foreground/70"
+                                                    }`}
+                                                >
+                                                    {met ? (
+                                                        <Check className="size-3" />
+                                                    ) : (
+                                                        <X className="size-3" />
+                                                    )}
+                                                    {rule}
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                )}
                             </div>
 
                             {mutation.isError && (
@@ -144,14 +199,16 @@ export default function Signup() {
                             {mutation.isSuccess && (
                                 <div className="flex items-start gap-2.5 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3.5 py-3">
                                     <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
-                                    <span>Account created! Redirecting to sign in...</span>
+                                    <span>
+                                        Account created! Redirecting to verify your email...
+                                    </span>
                                 </div>
                             )}
 
                             <Button
                                 type="submit"
                                 className="w-full h-10 mt-2"
-                                disabled={mutation.isPending || mutation.isSuccess}
+                                disabled={!canSubmit}
                             >
                                 {mutation.isPending ? (
                                     <>

@@ -10,6 +10,7 @@ export function useUserProfile() {
         queryKey: userProfileQueryKey,
         queryFn: async () => {
             const response = await elysiaClient.auth.profile.get()
+            console.log(response)
             if (response.error) throw new Error("Failed to fetch user profile")
             return response.data
         },

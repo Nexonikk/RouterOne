@@ -147,6 +147,7 @@ export const app = new Elysia({ prefix: "auth" })
     .get(
         "/profile",
         async ({ userId, status }) => {
+            console.log("userId", userId)
             const userData = await AuthService.getUserDetails(Number(userId))
             if (!userData) {
                 return status(400, {

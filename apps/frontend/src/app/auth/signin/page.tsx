@@ -2,7 +2,7 @@
 
 import { useElysiaClient } from "@/providers/Eden"
 import { useMutation } from "@tanstack/react-query"
-import { useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -18,12 +18,20 @@ import {
 } from "@/components/ui/card"
 import { ArrowRight, Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Logo } from "@/components/Logo"
+import { isValidEmail } from "@/zod/auth"
 
 export default function Signin() {
-    const emailRef = useRef<HTMLInputElement>(null)
-    const passwordRef = useRef<HTMLInputElement>(null)
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [emailTouched, setEmailTouched] = useState(false)
+
     const elysiaClient = useElysiaClient() as any
     const router = useRouter()
+
+    const emailError =
+        emailTouched && email.length > 0 && !isValidEmail(email)
+            ? "Enter a valid email address"
+            : null
 
     const mutation = useMutation({
         mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -41,6 +49,9 @@ export default function Signin() {
             router.push("/dashboard")
         },
     })
+
+    const canSubmit =
+        isValidEmail(email) && password.length > 0 && !mutation.isPending && !mutation.isSuccess
 
     return (
         <div className="dark min-h-screen relative flex items-center justify-center bg-background overflow-hidden">
@@ -93,10 +104,9 @@ export default function Signin() {
                             className="space-y-4"
                             onSubmit={(e) => {
                                 e.preventDefault()
-                                mutation.mutate({
-                                    email: emailRef.current!.value,
-                                    password: passwordRef.current!.value,
-                                })
+                                setEmailTouched(true)
+                                if (!isValidEmail(email) || password.length === 0) return
+                                mutation.mutate({ email, password })
                             }}
                         >
                             <div className="space-y-2">
@@ -105,13 +115,20 @@ export default function Signin() {
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
                                     <Input
                                         id="email"
-                                        ref={emailRef}
                                         type="email"
                                         placeholder="you@example.com"
                                         className="pl-10 h-10"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        onBlur={() => setEmailTouched(true)}
                                         required
                                     />
                                 </div>
+                                {emailError && (
+                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                        <AlertCircle className="size-3" /> {emailError}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -120,10 +137,11 @@ export default function Signin() {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
                                     <Input
                                         id="password"
-                                        ref={passwordRef}
                                         type="password"
                                         placeholder="Enter your password"
                                         className="pl-10 h-10"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         required
                                     />
                                 </div>
@@ -149,7 +167,7 @@ export default function Signin() {
                             <Button
                                 type="submit"
                                 className="w-full h-10 mt-2"
-                                disabled={mutation.isPending || mutation.isSuccess}
+                                disabled={!canSubmit}
                             >
                                 {mutation.isPending ? (
                                     <>

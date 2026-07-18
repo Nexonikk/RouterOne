@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@elysiajs/eden": "^1.2.0",
-    "@routerone/backend": "workspace:*",
     "@radix-ui/react-slot": "^1.1.1",
+    "@routerone/backend": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -19,7 +19,9 @@
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
