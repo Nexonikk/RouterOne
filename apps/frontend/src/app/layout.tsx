@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { Providers } from "@/providers/Providers"
 import NextTopLoader from "nextjs-toploader"
+import PageBackground from "@/components/PageBackground"
 
 export const metadata: Metadata = {
     title: "RouterOne — One API for every AI model",
@@ -21,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     speed={300}
                     shadow="0 0 10px #c1ff00, 0 0 5px #c1ff00"
                 />
-                <Providers>{children}</Providers>
+                <Providers>
+                    <PageBackground />
+                    {children}
+                </Providers>
             </body>
         </html>
     )
