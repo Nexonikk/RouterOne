@@ -110,7 +110,7 @@ export default function Footer() {
     }
 
     return (
-        <footer className="relative w-full overflow-hidden bg-black text-neutral-400">
+        <footer className="relative w-full overflow-hidden text-neutral-400">
             {/* Ambient background glow — kept very subtle */}
             <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[60rem] -translate-x-1/2 rounded-full bg-white/[0.02] blur-[120px]" />
 

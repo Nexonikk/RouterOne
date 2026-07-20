@@ -114,18 +114,23 @@ export default function Hero({ modelCount = 300 }: HeroProps) {
 
                     <motion.h1
                         variants={item}
-                        className="max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl lg:text-7xl"
+                        className="
+        max-w-4xl
+        text-5xl
+        font-bold
+        leading-[1.1]
+        tracking-tight
+        bg-gradient-to-r
+        from-white
+        via-white/70
+        to-white/40
+        bg-clip-text
+        text-transparent
+        sm:text-6xl
+        lg:text-7xl
+    "
                     >
-                        One API for every AI model
-                        {/* <span
-                            className="bg-clip-text text-transparent"
-                            style={{
-                                backgroundImage:
-                                    "linear-gradient(135deg, #FDE68A, #EC4899, #7C3AED)",
-                            }}
-                        >
-                            every AI model
-                        </span> */}
+                        One API for Every AI Model
                     </motion.h1>
 
                     <motion.p

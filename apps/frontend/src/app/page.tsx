@@ -3,12 +3,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { useElysiaClient } from "@/providers/Eden"
 import Hero from "@/components/landing/Hero"
-import StatsBar from "@/components/landing/StatsBar"
 import FeatureHighlights from "@/components/landing/FeatureHighlights"
 import FeaturedModels from "@/components/landing/FeaturedModels"
-import FeaturedAgents from "@/components/landing/FeaturedAgents"
+import LiveRouting from "@/components/landing/LiveRouting"
 import HowItWorks from "@/components/landing/HowItWorks"
-import BlogPosts from "@/components/landing/BlogPosts"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
 import Header from "@/components/landing/Header"
@@ -33,13 +31,11 @@ export default function Landing() {
             <PageBackground />
             <Header />
             <Hero modelCount={modelCount} />
-            {/* <StatsBar /> */}
             <FeatureHighlights />
             <FeaturedModels />
-            {/* <FeaturedAgents /> */}
+            <LiveRouting />
             <HowItWorks />
-            {/* <BlogPosts /> */}
-            {/* <CTASection /> */}
+            <CTASection />
             <Footer />
         </div>
     )

@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react"
 import FadeIn from "./FadeIn"
+import GlowBar from "./GlowBar"
 
 type SectionHeadingProps = {
     eyebrow?: string
@@ -28,9 +29,12 @@ export default function SectionHeading({
             >
                 <div>
                     {eyebrow && (
-                        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-indigo-300/70">
-                            {eyebrow}
-                        </span>
+                        <div className="mb-3 flex items-center gap-3">
+                            <span className="text-xs font-semibold uppercase tracking-widest text-indigo-300/70">
+                                {eyebrow}
+                            </span>
+                            <GlowBar width="w-10" />
+                        </div>
                     )}
                     <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                         {title}
@@ -49,9 +53,13 @@ export default function SectionHeading({
     return (
         <FadeIn className={`mx-auto max-w-2xl text-center ${className}`}>
             {eyebrow && (
-                <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-indigo-300/70">
-                    {eyebrow}
-                </span>
+                <div className="mb-3 flex items-center justify-center gap-3">
+                    <GlowBar width="w-10" />
+                    <span className="text-xs font-semibold uppercase tracking-widest text-indigo-300/70">
+                        {eyebrow}
+                    </span>
+                    <GlowBar width="w-10" />
+                </div>
             )}
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h2>
             {description && (

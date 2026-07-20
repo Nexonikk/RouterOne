@@ -2,12 +2,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
-import { LayoutDashboard, Key, Coins, Zap, LogOut, Wallet, Menu, X } from "lucide-react"
+import { LayoutDashboard, Key, Coins, LogOut, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { useSignOut } from "@/hooks/useSignOut"
 import { useUserProfile } from "@/hooks/useUserProfile"
-import { formatCredits } from "@/lib/format"
 import { ReactNode, useState, useEffect } from "react"
 
 interface NavItem {
@@ -27,8 +26,8 @@ const navGroups: NavGroup[] = [
     {
         items: [
             { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-            { label: "API Keys", href: "/api-keys", icon: LayoutDashboard },
-            { label: "Credits", href: "/credits", icon: LayoutDashboard },
+            { label: "API Keys", href: "/api-keys", icon: Key },
+            { label: "Credits", href: "/credits", icon: Coins },
         ],
     },
     // {
