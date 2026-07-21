@@ -8,6 +8,11 @@ export const metadata: Metadata = {
     title: "RouterOne — One API for every AI model",
     description:
         "Route to the best models from OpenAI, Anthropic, Google, Meta, and more through a single unified API.",
+    icons: {
+        icon: "/Routerone.png",
+        shortcut: "/Routerone.png",
+        apple: "/Routerone.png",
+    },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
