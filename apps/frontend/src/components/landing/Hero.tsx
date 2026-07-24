@@ -1,14 +1,10 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Gradient from "../animations/Gradient"
-
-type HeroProps = {
-    /** Total number of models routed through the API, shown in the eyebrow badge */
-    modelCount?: number
-}
+import { Model } from "@/types/Model"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -24,9 +20,10 @@ const item = {
     show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
 }
 
-export default function Hero({ modelCount = 300 }: HeroProps) {
+export default function Hero({ models }: { models: Model[] }) {
     const sectionRef = useRef<HTMLElement>(null)
     const [isHovering, setIsHovering] = useState(false)
+    const [currentModel, setCurrentModel] = useState(0)
 
     // Raw pointer position, converted to a -1..1 range around the section center
     const rawX = useMotionValue(0)
@@ -44,6 +41,20 @@ export default function Hero({ modelCount = 300 }: HeroProps) {
         ([gx, gy]) =>
             `radial-gradient(600px circle at ${gx} ${gy}, rgba(124,58,237,0.18), transparent 60%)`,
     )
+
+    const uniqueModels = models.filter(
+        (model, index, self) => index === self.findIndex((m) => m.company.id === model.company.id),
+    )
+
+    useEffect(() => {
+        if (!uniqueModels.length) return
+
+        const timer = setInterval(() => {
+            setCurrentModel((prev) => (prev + 1) % uniqueModels.length)
+        }, 1500)
+
+        return () => clearInterval(timer)
+    }, [uniqueModels])
 
     const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
         const rect = sectionRef.current?.getBoundingClientRect()
@@ -104,13 +115,13 @@ export default function Hero({ modelCount = 300 }: HeroProps) {
                     style={{ x: copyX, y: copyY }}
                     className="mx-auto flex flex-col items-center"
                 >
-                    <motion.div
+                    {/* <motion.div
                         variants={item}
                         className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/70 backdrop-blur-sm"
                     >
                         <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         {modelCount}+ models available
-                    </motion.div>
+                    </motion.div> */}
 
                     <motion.h1
                         variants={item}
@@ -150,24 +161,43 @@ export default function Hero({ modelCount = 300 }: HeroProps) {
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}
                             transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                            className="group inline-flex h-12 items-center gap-2 rounded-full bg-indigo-500 px-8 text-sm font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-indigo-400"
+                            className="group inline-flex h-12 items-center gap-2 rounded-md bg-indigo-500 px-8 text-sm font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-indigo-400"
                         >
                             Start building
                             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                         </motion.a>
 
                         <motion.a
-                            href="/dashboard"
+                            href="/models"
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}
                             transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                            className="inline-flex h-12 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-8 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/[0.08]"
+                            className="inline-flex h-12 items-center gap-3 rounded-md border border-white/10 bg-white/[0.04] px-5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/[0.08]"
                         >
-                            View dashboard
+                            <span>Explore Models</span>
+
+                            <div className="relative h-6 w-6 overflow-hidden">
+                                {uniqueModels[currentModel] && (
+                                    <motion.img
+                                        key={uniqueModels[currentModel].company.id}
+                                        src={uniqueModels[currentModel].company.logo}
+                                        alt={uniqueModels[currentModel].company.name}
+                                        initial={{ y: 24 }}
+                                        animate={{ y: 0 }}
+                                        exit={{ y: -24 }}
+                                        transition={{
+                                            duration: 0.25,
+                                            ease: "easeInOut",
+                                        }}
+                                        className="absolute inset-0 h-6 w-6 object-contain"
+                                    />
+                                )}
+                            </div>
                         </motion.a>
                     </motion.div>
 
                     {/* Code snippet */}
+
                     <motion.div variants={item} className="mt-20 w-full max-w-2xl">
                         <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] text-left shadow-2xl backdrop-blur-sm">
                             <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">

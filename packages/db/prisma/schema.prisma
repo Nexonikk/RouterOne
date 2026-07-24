@@ -43,6 +43,7 @@ model Company {
   id      Int     @id @default(autoincrement())
   name    String
   website String
+  logo    String  @default("")
   models  Model[]
 }
 
@@ -50,7 +51,6 @@ model Model {
   id                    Int                    @id @default(autoincrement())
   name                  String
   slug                  String
-  logo                  String                 @default("")
   companyId             Int
   company               Company                @relation(fields: [companyId], references: [id])
   modelProviderMappings ModelProviderMapping[]

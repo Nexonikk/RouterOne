@@ -24,15 +24,15 @@ export default function Landing() {
         },
     })
 
-    const modelCount = modelsQuery.data?.models?.length ?? 400
+    const models = modelsQuery.data?.models ?? []
 
     return (
         <div className="dark min-h-screen text-foreground">
             <PageBackground />
             <Header />
-            <Hero modelCount={modelCount} />
+            <Hero models={models} />
             <FeatureHighlights />
-            <FeaturedModels />
+            <FeaturedModels models={models} />
             <LiveRouting />
             <HowItWorks />
             <CTASection />

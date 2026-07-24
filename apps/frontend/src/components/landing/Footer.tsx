@@ -1,3 +1,4 @@
+"use client"
 import { useRef, useState, MouseEvent } from "react"
 import { motion, useMotionValue, useSpring, useMotionTemplate } from "framer-motion"
 import { Github, Linkedin, Twitter, Youtube, Route } from "lucide-react"
