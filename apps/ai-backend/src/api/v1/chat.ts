@@ -8,37 +8,10 @@ import { Claude } from "../../llms/Claude"
 import { LlmResponse } from "../../llms/Base"
 import { MistralAI } from "../../llms/Mistral"
 import { GroqAI } from "../../llms/Groq"
+import { Openrouter } from "../../llms/Openrouter"
 
 export const chatRoutes = new Elysia({ prefix: "/chat" })
     .use(bearer())
-    // .get("/models", async ({ status, bearer: apiKey }) => {
-    //   const apiKeyDb = await prisma.apiKey.findFirst({
-    //     where: {
-    //       apiKey,
-    //       disabled: false,
-    //       deleted: false
-    //     },
-    //     select: {
-    //       user: true
-    //     }
-    //   });
-
-    //   if (!apiKeyDb) {
-    //     return status(403, {
-    //       message: "Invalid api key"
-    //     });
-    //   }
-
-    //   if (apiKeyDb?.user.credits <= 0) {
-    //     return status(403, {
-    //       message: "You dont have enough credits in your db"
-    //     });
-    //   }
-
-    //   const models = await prisma.model.findMany();
-
-    //   return models;
-    // })
 
     .post(
         "/completions",
@@ -122,6 +95,10 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                 response = await GroqAI.chat(providerModelName, body.messages)
             }
 
+            if (provider.provider.name === "Openrouter") {
+                response = await Openrouter.chat(providerModelName, body.messages)
+            }
+
             if (!response) {
                 return status(403, {
                     message: "No provider found for this model",
@@ -132,7 +109,6 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                 (response.inputTokensConsumed * provider.inputTokenCost +
                     response.outputTokensConsumed * provider.outputTokenCost) /
                 10
-            console.log(creditsUsed)
 
             const res = await prisma.user.update({
                 where: {
