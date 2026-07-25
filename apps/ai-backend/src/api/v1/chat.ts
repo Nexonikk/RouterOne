@@ -2,13 +2,7 @@ import { Elysia } from "elysia"
 import bearer from "@elysiajs/bearer"
 import { prisma } from "db"
 import { Conversation } from "../../types"
-import { Gemini } from "../../llms/Gemini"
-import { OpenAi } from "../../llms/OpenAi"
-import { Claude } from "../../llms/Claude"
-import { LlmResponse } from "../../llms/Base"
-import { MistralAI } from "../../llms/Mistral"
-import { GroqAI } from "../../llms/Groq"
-import { Openrouter } from "../../llms/Openrouter"
+import { callWithFallback } from "../../utils/fallback"
 
 export const chatRoutes = new Elysia({ prefix: "/chat" })
     .use(bearer())
@@ -70,44 +64,21 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
 
             const provider = providers[Math.floor(Math.random() * providers.length)]
 
-            let response: LlmResponse | null = null
-            if (provider.provider.name === "Google API") {
-                response = await Gemini.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "Google Vertex") {
-                response = await Gemini.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "OpenAI") {
-                response = await OpenAi.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "Claude API") {
-                response = await Claude.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "MistralAI") {
-                response = await MistralAI.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "Groq") {
-                response = await GroqAI.chat(providerModelName, body.messages)
-            }
-
-            if (provider.provider.name === "Openrouter") {
-                response = await Openrouter.chat(providerModelName, body.messages)
-            }
+            const response = await callWithFallback(
+                provider.provider.name,
+                providerModelName,
+                body.messages,
+            )
 
             if (!response) {
-                return status(403, {
-                    message: "No provider found for this model",
+                return status(503, {
+                    message: "All providers failed",
                 })
             }
 
             const creditsUsed =
-                (response.inputTokensConsumed * provider.inputTokenCost +
-                    response.outputTokensConsumed * provider.outputTokenCost) /
+                (response.response.inputTokensConsumed * provider.inputTokenCost +
+                    response.response.outputTokensConsumed * provider.outputTokenCost) /
                 10
 
             const res = await prisma.user.update({
