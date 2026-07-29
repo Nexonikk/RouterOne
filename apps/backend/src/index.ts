@@ -1,6 +1,7 @@
-import { app } from "./app"
+import { app } from "./app.js"
 
-export { app }
-export type { App } from "./app"
+// Export types for Eden
+export type { App } from "./app.js"
 
+// Vercel requires the app instance as the default export
 export default app

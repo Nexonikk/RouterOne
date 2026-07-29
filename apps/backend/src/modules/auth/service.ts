@@ -1,6 +1,6 @@
 import { prisma } from "db"
-import { generateOTP } from "../../utils/generateOTP"
-import { sendEmailOTP } from "../../utils/sendEmailOTP"
+import { generateOTP } from "../../utils/generateOTP.js"
+import { sendEmailOTP } from "../../utils/sendEmailOTP.js"
 
 export abstract class AuthService {
     static async signup(email: string, password: string): Promise<void> {

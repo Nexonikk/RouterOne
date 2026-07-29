@@ -1,7 +1,10 @@
-import { emailTemplate } from "../lib/emailTemplate"
-import mailjet from "node-mailjet"
+import { emailTemplate } from "../lib/emailTemplate.js"
+import Mailjet from "node-mailjet"
 
-const client = mailjet.apiConnect(process.env.MJ_APIKEY_PUBLIC!, process.env.MJ_APIKEY_PRIVATE!)
+const client = new Mailjet.Client({
+    apiKey: process.env.MJ_APIKEY_PUBLIC!,
+    apiSecret: process.env.MJ_APIKEY_PRIVATE!,
+})
 
 export async function sendEmailOTP(email: string, otp: string): Promise<void> {
     const payload = {

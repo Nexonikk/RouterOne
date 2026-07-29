@@ -1,10 +1,10 @@
 import { Elysia } from "elysia"
 import { cors } from "@elysiajs/cors"
 
-import { app as authApp } from "./modules/auth/index"
-import { app as apiKeyApp } from "./modules/apiKeys/index"
-import { app as modelsApp } from "./modules/models/index"
-import { app as paymentsApp } from "./modules/payments/index"
+import { app as authApp } from "./modules/auth/index.js"
+import { app as apiKeyApp } from "./modules/apiKeys/index.js"
+import { app as modelsApp } from "./modules/models/index.js"
+import { app as paymentsApp } from "./modules/payments/index.js"
 
 export const app = new Elysia()
     .get("/", () => ({

@@ -8,7 +8,7 @@ export abstract class ModelsService {
             },
         })
 
-        return models.map((model) => ({
+        return models.map((model: any) => ({
             id: model.id.toString(),
             name: model.name,
             slug: model.slug,
@@ -24,7 +24,7 @@ export abstract class ModelsService {
     static async getProviders() {
         const providers = await prisma.provider.findMany()
 
-        return providers.map((provider) => ({
+        return providers.map((provider: any) => ({
             id: provider.id.toString(),
             name: provider.name,
             website: provider.website,
@@ -41,7 +41,7 @@ export abstract class ModelsService {
             },
         })
 
-        return mappings.map((mapping) => ({
+        return mappings.map((mapping: any) => ({
             id: mapping.id.toString(),
             providerId: mapping.provider.id.toString(),
             providerName: mapping.provider.name,

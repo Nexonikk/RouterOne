@@ -42,7 +42,7 @@ export abstract class ApiKeyService {
             },
         })
 
-        return apiKeys.map((apiKey) => ({
+        return apiKeys.map((apiKey: any) => ({
             id: apiKey.id.toString(),
             apiKey: apiKey.apiKey,
             name: apiKey.name,
