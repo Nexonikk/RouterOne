@@ -1,19 +1,26 @@
 {
     "name": "db",
-    "module": "index.ts",
+    "version": "1.0.0",
     "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./index.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
     },
     "private": true,
     "scripts": {
-        "build": "prisma generate",
+        "build": "prisma generate && tsc",
         "postinstall": "prisma generate"
     },
     "devDependencies": {
         "@types/bun": "latest",
         "@types/pg": "^8.16.0",
-        "prisma": "^7.8.0"
+        "prisma": "^7.8.0",
+        "typescript": "^5"
     },
     "peerDependencies": {
         "typescript": "^5"
