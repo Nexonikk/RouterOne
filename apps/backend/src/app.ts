@@ -1,15 +1,14 @@
-// apps/backend/src/app.ts
 import { Elysia } from "elysia"
 import { cors } from "@elysiajs/cors"
-import { node } from "@elysiajs/node" // Import the Node adapter
+import { node } from "@elysiajs/node"
 
 import { app as authApp } from "./modules/auth/index.js"
 import { app as apiKeyApp } from "./modules/apiKeys/index.js"
 import { app as modelsApp } from "./modules/models/index.js"
 import { app as paymentsApp } from "./modules/payments/index.js"
 
-// Pass the adapter when creating the app
-export const app = new Elysia({ adapter: node() })
+// Use 'const app' but also export it as default
+const app = new Elysia({ adapter: node() })
     .get("/", () => ({
         status: "ok",
         service: "routerone-backend",
@@ -27,3 +26,6 @@ export const app = new Elysia({ adapter: node() })
     .use(paymentsApp)
 
 export type App = typeof app
+
+// CRITICAL: Export as default for Vercel
+export default app

@@ -1,5 +1,4 @@
-// apps/backend/src/server.ts
-import { app } from "./app.js"
+import app from "./app.js" // Note: importing the default export now
 
 const PORT = Number(process.env.PORT) || 3000
 

@@ -1,7 +1,5 @@
-// apps/backend/src/index.ts
-import { app } from "./app.js"
+import app from "./app.js" // Note: importing the default export now
 
 export type { App } from "./app.js"
 
-// Vercel expects the app instance as the default export
 export default app
