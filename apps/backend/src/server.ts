@@ -1,3 +1,4 @@
+// apps/backend/src/server.ts
 import { app } from "./app.js"
 
 const PORT = Number(process.env.PORT) || 3000
