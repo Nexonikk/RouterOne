@@ -8,6 +8,7 @@
     "dependencies": {
         "@anthropic-ai/sdk": "^0.74.0",
         "@elysiajs/bearer": "^1.4.3",
+        "@elysiajs/node": "^1.4.5",
         "@google/genai": "^1.41.0",
         "@mistralai/mistralai": "^2.4.1",
         "@openrouter/sdk": "^1.1.6",
