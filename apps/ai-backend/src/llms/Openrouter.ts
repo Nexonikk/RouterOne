@@ -1,5 +1,5 @@
-import { Messages } from "../types"
-import { BaseLlm, LlmResponse } from "./Base"
+import { Messages } from "../types.js"
+import { BaseLlm, LlmResponse } from "./Base.js"
 import { OpenRouter } from "@openrouter/sdk"
 
 const client = new OpenRouter({

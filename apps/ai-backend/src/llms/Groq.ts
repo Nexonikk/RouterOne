@@ -1,5 +1,5 @@
-import { Messages } from "../types"
-import { BaseLlm, LlmResponse } from "./Base"
+import { Messages } from "../types.js"
+import { BaseLlm, LlmResponse } from "./Base.js"
 import Groq from "groq-sdk"
 
 const groq = new Groq({

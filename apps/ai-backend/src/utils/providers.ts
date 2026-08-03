@@ -1,11 +1,11 @@
-import { Gemini } from "../llms/Gemini"
-import { OpenAi } from "../llms/OpenAi"
-import { Claude } from "../llms/Claude"
-import { MistralAI } from "../llms/Mistral"
-import { GroqAI } from "../llms/Groq"
-import { Openrouter } from "../llms/Openrouter"
-import { Messages } from "../types"
-import { LlmResponse } from "../llms/Base"
+import { Gemini } from "../llms/Gemini.js"
+import { OpenAi } from "../llms/OpenAi.js"
+import { Claude } from "../llms/Claude.js"
+import { MistralAI } from "../llms/Mistral.js"
+import { GroqAI } from "../llms/Groq.js"
+import { Openrouter } from "../llms/Openrouter.js"
+import { Messages } from "../types.js"
+import { LlmResponse } from "../llms/Base.js"
 
 export async function callProvider(
     providerName: string,

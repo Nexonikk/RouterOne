@@ -1,6 +1,6 @@
-import { callProvider } from "./providers"
-import { Messages } from "../types"
-import { LlmResponse } from "../llms/Base"
+import { callProvider } from "./providers.js"
+import { Messages } from "../types.js"
+import { LlmResponse } from "../llms/Base.js"
 
 const FALLBACK_PROVIDER = "MistralAI"
 const FALLBACK_MODEL = "mistral/mistral-small-latest"

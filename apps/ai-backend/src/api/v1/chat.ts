@@ -1,8 +1,8 @@
 import { Elysia } from "elysia"
-import bearer from "@elysiajs/bearer"
+import { bearer } from "@elysiajs/bearer"
 import { prisma } from "db"
-import { Conversation } from "../../types"
-import { callWithFallback } from "../../utils/fallback"
+import { Conversation } from "../../types.js"
+import { callWithFallback } from "../../utils/fallback.js"
 
 export const chatRoutes = new Elysia({ prefix: "/chat" })
     .use(bearer())
