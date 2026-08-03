@@ -12,7 +12,7 @@ export class Openrouter extends BaseLlm {
             chatRequest: {
                 model,
                 stream: false,
-                messages: messages.map((message) => ({
+                messages: messages.map((message: any) => ({
                     role: message.role,
                     content: message.content,
                 })),

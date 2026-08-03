@@ -10,7 +10,7 @@ export class Gemini extends BaseLlm {
     static async chat(model: string, messages: Messages): Promise<LlmResponse> {
         const response = await ai.models.generateContent({
             model: model,
-            contents: messages.map((message) => ({
+            contents: messages.map((message: any) => ({
                 text: message.content,
                 role: message.role,
             })),

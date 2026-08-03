@@ -10,7 +10,7 @@ export class MistralAI extends BaseLlm {
     static async chat(model: string, messages: Messages): Promise<LlmResponse> {
         const response = await client.chat.complete({
             model: model,
-            messages: messages.map((message) => ({
+            messages: messages.map((message: any) => ({
                 role: message.role,
                 content: message.content,
             })),
