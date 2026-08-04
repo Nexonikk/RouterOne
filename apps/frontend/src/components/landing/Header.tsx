@@ -6,10 +6,13 @@ import { useState } from "react"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/Logo"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false)
     const { scrollY } = useScroll()
+
+    const { isAuthenticated, isLoading } = useAuth()
 
     useMotionValueEvent(scrollY, "change", (latest) => {
         setScrolled(latest > 8)
@@ -32,16 +35,24 @@ export default function Header() {
                         RouterOne
                     </span>
                 </Link>
+
                 <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="sm" asChild>
-                        <Link href="/auth/signin">Sign in</Link>
-                    </Button>
-                    <Button size="sm" asChild>
-                        <Link href="/dashboard">
-                            Dashboard
-                            <ArrowRight className="size-3.5" />
-                        </Link>
-                    </Button>
+                    {!isLoading &&
+                        (isAuthenticated ? (
+                            <Button size="sm" asChild>
+                                <Link href="/dashboard">
+                                    Dashboard
+                                    <ArrowRight className="size-3.5" />
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button size="sm" asChild>
+                                <Link href="/auth/signup" className="text-[13px]">
+                                    Sign Up
+                                    <ArrowRight className="size-3.5" />
+                                </Link>
+                            </Button>
+                        ))}
                 </div>
             </div>
         </motion.header>

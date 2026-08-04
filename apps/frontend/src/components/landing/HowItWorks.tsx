@@ -1,12 +1,8 @@
 "use client"
 
-import { ReactNode, useRef, useEffect, useState } from "react"
+import { ReactNode, useRef, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Copy, Check, User, UserPlus, Zap, Lock, Sparkles } from "lucide-react"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger"
-
-gsap.registerPlugin(ScrollTrigger)
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -176,9 +172,14 @@ const STEPS = [
 ] as const
 
 /**
- * Heavy parallax step with scroll-stopping effect.
- * Each step "sticks" during scroll, showing dramatic parallax before transitioning to next step.
- * Multiple layers animate independently with staggered timing.
+ * A single step in the sequence.
+ *
+ * Motion is split into two layers that never fight each other:
+ *  - Decorative layer (giant number, glow blobs): tied to scroll progress,
+ *    free to be subtle and continuous since it doesn't need to stay legible.
+ *  - Content layer (heading, copy, visual card): reveals once via
+ *    whileInView and then simply stays fully visible. It is never driven by
+ *    scrollYProgress, so it can't get stuck at a low opacity mid-scroll.
  */
 function Step({
     number,
@@ -194,90 +195,40 @@ function Step({
     index: number
 }) {
     const ref = useRef<HTMLDivElement>(null)
-    const contentRef = useRef<HTMLDivElement>(null)
-    const [isActive, setIsActive] = useState(false)
-
-    useEffect(() => {
-        if (!contentRef.current) return
-
-        // Create scroll trigger for heavy parallax effect with scroll "stickiness"
-        const trigger = ScrollTrigger.create({
-            trigger: ref.current,
-            start: "top center",
-            end: "center center",
-            onEnter: () => setIsActive(true),
-            onLeave: () => setIsActive(false),
-            onEnterBack: () => setIsActive(true),
-            onLeaveBack: () => setIsActive(false),
-        })
-
-        return () => trigger.kill()
-    }, [])
+    const reversed = index % 2 === 1
 
     const { scrollYProgress } = useScroll({
         target: ref,
-        offset: ["start 60%", "end 40%"],
+        offset: ["start end", "end start"],
     })
 
-    // Extreme parallax offsets for heavy effect
-    const numberY = useTransform(scrollYProgress, [0, 1], [200, -150])
-    const numberOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 0.6, 1, 0.2])
-    const numberScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1.1])
-    const numberRotate = useTransform(scrollYProgress, [0, 1], [15, -15])
-
-    // Text animations with stagger
-    const textY = useTransform(scrollYProgress, [0, 0.5, 1], [150, 0, -100])
-    const textOpacity = useTransform(scrollYProgress, [0, 0.25, 0.85, 1], [0, 0.4, 1, 0.3])
-    const textScale = useTransform(scrollYProgress, [0, 0.4, 1], [0.9, 1, 0.95])
-    const textRotateX = useTransform(scrollYProgress, [0, 0.5], [20, 0])
-
-    // Visual card with extreme depth and multiple transforms
-    const visualY = useTransform(scrollYProgress, [0, 0.5, 1], [400, 0, -200])
-    const visualOpacity = useTransform(scrollYProgress, [0, 0.35, 0.95], [0, 0.8, 0.3])
-    const visualRotate = useTransform(scrollYProgress, [0, 1], [index % 2 === 1 ? -12 : 12, 0])
-    const visualRotateX = useTransform(scrollYProgress, [0, 0.6], [30, 0])
-    const visualScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.6, 1, 1.05])
-    const visualSkew = useTransform(scrollYProgress, [0, 0.5, 1], [8, 0, -8])
-
-    // Additional floating animation layers
-    const floatY = useTransform(scrollYProgress, [0, 1], [0, 40])
-    const blurAmount = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [10, 5, 2, 0])
-
-    const reversed = index % 2 === 1
+    // Subtle, continuous parallax — decorative only.
+    const numberY = useTransform(scrollYProgress, [0, 1], [70, -70])
+    const numberOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 0.5, 0.5, 0])
+    const glowAY = useTransform(scrollYProgress, [0, 1], [-30, 30])
+    const glowBY = useTransform(scrollYProgress, [0, 1], [30, -30])
 
     return (
         <div
             ref={ref}
-            className="relative flex min-h-[120vh] items-center justify-center overflow-hidden px-4 md:px-0"
+            className="relative flex min-h-[90vh] items-center justify-center overflow-hidden px-4 py-24 md:px-0"
         >
-            {/* Animated background elements */}
+            {/* Ambient glow, drifts gently as the step scrolls through */}
             <div className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
-                {/* Primary glow */}
                 <motion.div
-                    style={{ y: numberY, opacity: numberOpacity }}
+                    style={{ y: glowAY }}
                     className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-indigo-500/[0.12] blur-3xl"
                 />
-                {/* Secondary glow */}
                 <motion.div
-                    style={{ y: visualY, opacity: visualOpacity }}
+                    style={{ y: glowBY }}
                     className="absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-fuchsia-500/[0.08] blur-3xl"
-                />
-                {/* Accent glow */}
-                <motion.div
-                    style={{ scale: visualScale }}
-                    className="absolute top-1/3 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-500/[0.05] blur-2xl"
                 />
             </div>
 
-            {/* Giant background number with rotation and scale */}
+            {/* Giant background number */}
             <motion.span
                 aria-hidden="true"
-                style={{
-                    y: numberY,
-                    opacity: numberOpacity,
-                    scale: numberScale,
-                    rotate: numberRotate,
-                }}
+                style={{ y: numberY, opacity: numberOpacity }}
                 className={`pointer-events-none absolute top-1/2 -translate-y-1/2 select-none text-[12rem] font-black leading-none text-white/[0.05] sm:text-[18rem] md:text-[20rem] ${
                     reversed ? "right-0 -mr-16 md:-mr-32" : "left-0 -ml-16 md:-ml-32"
                 }`}
@@ -285,39 +236,32 @@ function Step({
                 {number}
             </motion.span>
 
-            <motion.div
-                ref={contentRef}
-                style={{ y: floatY }}
-                className="relative z-10 w-full max-w-6xl"
-            >
+            <div className="relative z-10 w-full max-w-6xl">
                 <div className="grid w-full grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
-                    {/* Text content with 3D perspective */}
+                    {/* Text content — reveals once, then stays fully visible */}
                     <motion.div
-                        style={{
-                            y: textY,
-                            opacity: textOpacity,
-                            scale: textScale,
-                            rotateX: textRotateX,
-                        }}
-                        className={`perspective ${reversed ? "md:order-2" : ""}`}
+                        initial={{ opacity: 0, y: 32 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-15% 0px -15% 0px" }}
+                        transition={{ duration: 0.6, ease: EASE }}
+                        className={reversed ? "md:order-2" : ""}
                     >
-                        {/* Animated accent line */}
                         <motion.div
                             initial={{ scaleX: 0 }}
                             whileInView={{ scaleX: 1 }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
+                            transition={{ duration: 0.5, delay: 0.05, ease: EASE }}
                             viewport={{ once: true }}
                             className="mb-4 h-1 w-12 origin-left bg-gradient-to-r from-indigo-400 to-cyan-400"
                         />
 
-                        <motion.span className="block font-mono text-sm font-semibold text-indigo-300/70">
+                        <span className="block font-mono text-sm font-semibold text-indigo-300/70">
                             Step {number}
-                        </motion.span>
+                        </span>
 
                         <motion.h3
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.15 }}
+                            transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
                             viewport={{ once: true }}
                             className="mt-4 text-4xl font-bold text-white sm:text-5xl md:text-5xl"
                         >
@@ -325,20 +269,19 @@ function Step({
                         </motion.h3>
 
                         <motion.p
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
+                            transition={{ duration: 0.5, delay: 0.15, ease: EASE }}
                             viewport={{ once: true }}
                             className="mt-4 max-w-xl text-lg leading-relaxed text-white/60"
                         >
                             {description}
                         </motion.p>
 
-                        {/* Feature pills that animate in */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.25 }}
+                            transition={{ duration: 0.5, delay: 0.2, ease: EASE }}
                             viewport={{ once: true }}
                             className="mt-8 flex flex-wrap gap-3"
                         >
@@ -381,47 +324,41 @@ function Step({
                         </motion.div>
                     </motion.div>
 
-                    {/* Visual card with extreme 3D transforms */}
+                    {/* Visual card — one clean reveal, no stacked/competing transforms */}
                     <motion.div
-                        style={{
-                            y: visualY,
-                            opacity: visualOpacity,
-                            rotate: visualRotate,
-                            rotateX: visualRotateX,
-                            scale: visualScale,
-                            skewY: visualSkew,
+                        initial={{
+                            opacity: 0,
+                            y: 32,
+                            scale: 0.94,
+                            rotate: reversed ? -3 : 3,
                         }}
-                        className={`perspective h-64 md:h-80 ${reversed ? "md:order-1" : ""}`}
+                        whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                        viewport={{ once: true, margin: "-15% 0px -15% 0px" }}
+                        transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+                        className={`h-64 md:h-80 ${reversed ? "md:order-1" : ""}`}
                     >
-                        <motion.div
-                            initial={{ filter: "blur(20px)" }}
-                            whileInView={{ filter: "blur(0px)" }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
-                            viewport={{ once: true }}
-                            className="h-full"
-                        >
-                            <div className="perspective h-full">{visual}</div>
-                        </motion.div>
+                        {visual}
                     </motion.div>
                 </div>
-            </motion.div>
+            </div>
 
-            {/* Decorative elements that animate during scroll */}
-            <motion.div
-                style={{
-                    opacity: numberOpacity,
-                    scale: numberScale,
-                }}
-                className="pointer-events-none absolute bottom-12 left-1/2 -translate-x-1/2"
-            >
+            {index === 0 && (
                 <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="text-white/20"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
+                    className="pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2"
                 >
-                    ↓ scroll ↓
+                    <motion.div
+                        animate={{ y: [0, -8, 0] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                        className="text-xs uppercase tracking-widest text-white/20"
+                    >
+                        ↓ scroll ↓
+                    </motion.div>
                 </motion.div>
-            </motion.div>
+            )}
         </div>
     )
 }
@@ -433,32 +370,35 @@ export default function HowItWorks() {
         offset: ["start 20%", "end 80%"],
     })
 
-    // Animated gradient line with glow effect
     const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
     const lineOpacity = useTransform(scrollYProgress, [0, 0.05, 0.95, 1], [0, 1, 1, 0])
-    const lineGlow = useTransform(scrollYProgress, [0, 0.5, 1], [0, 20, 0])
+    const lineBoxShadow = useTransform(
+        scrollYProgress,
+        [0, 0.5, 1],
+        [
+            "0 0 0px rgba(129,140,248,0.8)",
+            "0 0 20px rgba(129,140,248,0.8)",
+            "0 0 0px rgba(129,140,248,0.8)",
+        ],
+    )
 
-    // Background animation
     const bgOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.1, 0.3, 0.1])
 
     return (
-        <section className="relative border-t border-white/5 bg-black/20 backdrop-blur-sm overflow-hidden">
+        <section className="relative overflow-hidden border-t border-white/5 bg-black/20 backdrop-blur-sm">
             <div ref={containerRef} className="relative w-full">
-                {/* Animated background gradient */}
                 <motion.div
                     style={{ opacity: bgOpacity }}
                     className="pointer-events-none absolute inset-0 bg-gradient-to-b from-indigo-500/0 via-indigo-500/[0.02] to-transparent"
                 />
 
-                {/* Animated progress indicator - visible on larger screens */}
+                {/* Scroll progress indicator */}
                 <div className="absolute left-8 top-0 bottom-0 hidden w-px bg-white/5 md:block">
                     <motion.div
                         style={{
                             height: lineHeight,
                             opacity: lineOpacity,
-                            boxShadow: lineGlow.get()
-                                ? `0 0 ${lineGlow.get()}px rgba(129,140,248,0.8)`
-                                : "none",
+                            boxShadow: lineBoxShadow,
                         }}
                         className="w-px bg-gradient-to-b from-indigo-400 via-indigo-500 to-fuchsia-500"
                     />
@@ -469,15 +409,15 @@ export default function HowItWorks() {
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            transition={{ duration: 0.7, ease: EASE }}
                             viewport={{ once: true, margin: "-100px" }}
                             className="mb-32"
                         >
                             <motion.span
-                                className="inline-block font-mono text-sm font-semibold uppercase tracking-widest text-indigo-300/70 mb-4"
+                                className="mb-4 inline-block font-mono text-sm font-semibold uppercase tracking-widest text-indigo-300/70"
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.6, delay: 0.1 }}
+                                transition={{ duration: 0.5, delay: 0.05, ease: EASE }}
                                 viewport={{ once: true }}
                             >
                                 Get started
@@ -486,7 +426,7 @@ export default function HowItWorks() {
                                 className="text-4xl font-bold text-white sm:text-5xl md:text-6xl"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
+                                transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
                                 viewport={{ once: true }}
                             >
                                 Three steps to your first request
@@ -495,7 +435,7 @@ export default function HowItWorks() {
                                 className="mt-6 max-w-2xl text-lg text-white/60"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8, delay: 0.3 }}
+                                transition={{ duration: 0.6, delay: 0.15, ease: EASE }}
                                 viewport={{ once: true }}
                             >
                                 From account to API call in a few minutes, no subscription required.

@@ -185,7 +185,7 @@ function DiagramContent() {
             </Reveal>
             <Reveal x={330}>
                 <g transform="translate(330, 104)">
-                    <Pill width={172} label="primary · claude-fable-5" />
+                    <Pill width={172} label="primary · claude-sonnet-4.5" />
                 </g>
             </Reveal>
             <Reveal x={502}>
@@ -235,7 +235,7 @@ function DiagramContent() {
             </Reveal>
             <Reveal x={760}>
                 <g transform="translate(760, 104)">
-                    <Pill width={162} label="retry · gpt-5.6-sol" />
+                    <Pill width={162} label="retry · gpt-oss-20b" />
                 </g>
             </Reveal>
             <Reveal x={922}>
@@ -350,7 +350,7 @@ function RoutingDiagram() {
     return (
         <div
             ref={containerRef}
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 sm:p-8"
+            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/2 p-4 sm:p-8"
         >
             <svg
                 viewBox="0 0 940 260"

@@ -152,14 +152,16 @@ export default function CTASection() {
                                                 quickstart.sh
                                             </span>
                                         </div>
-                                        <pre className="overflow-x-auto p-5 font-mono text-sm leading-relaxed">
+                                        <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed">
                                             <code>
                                                 <span className="text-white/40">
                                                     {"# One key. Every model.\n"}
                                                 </span>
                                                 <span className="text-blue-400">{"curl "}</span>
                                                 <span className="text-emerald-400">
-                                                    {"https://routerone.ai/api/v1/chat"}
+                                                    {
+                                                        "https://routeroneai.vercel.app/api/v1/chat/completions"
+                                                    }
                                                 </span>
                                                 <span className="text-white">{" \\\n  -H "}</span>
                                                 <span className="text-emerald-400">
@@ -167,7 +169,7 @@ export default function CTASection() {
                                                 </span>
                                                 <span className="text-white">{" \\\n  -d "}</span>
                                                 <span className="text-emerald-400">
-                                                    {'\'{"model":"anthropic/claude-fable-5"}\''}
+                                                    {'\'{"model":"google/gemini-2.5-pro"}\''}
                                                 </span>
                                             </code>
                                         </pre>

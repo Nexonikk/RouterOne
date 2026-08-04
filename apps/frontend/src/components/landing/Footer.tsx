@@ -10,10 +10,33 @@ const TAGLINE = "One API for every AI model."
 const DESCRIPTION =
     "Route to the best models from OpenAI, Anthropic, Google, Meta, and more. One integration, infinite possibilities."
 
-const LINK_COLUMNS: { heading: string; links: string[] }[] = [
-    { heading: "Product", links: ["Models", "Pricing", "API", "Dashboard"] },
-    { heading: "Resources", links: ["Documentation", "Blog", "Status"] },
-    { heading: "Company", links: ["About", "Careers", "Privacy", "Terms"] },
+const LINK_COLUMNS: { heading: string; links: { name: string; href: string }[] }[] = [
+    {
+        heading: "Product",
+        links: [
+            { name: "Models", href: "/models" },
+            { name: "Pricing", href: "/pricing" },
+            { name: "API", href: "/api" },
+            { name: "Dashboard", href: "/dashboard" },
+        ],
+    },
+    {
+        heading: "Resources",
+        links: [
+            { name: "Documentation", href: "/docs" },
+            { name: "Blog", href: "/blog" },
+            { name: "Status", href: "/status" },
+        ],
+    },
+    {
+        heading: "Company",
+        links: [
+            { name: "About", href: "/about" },
+            { name: "Careers", href: "/careers" },
+            { name: "Privacy", href: "/privacy" },
+            { name: "Terms", href: "/terms" },
+        ],
+    },
 ]
 
 const SOCIALS = [
@@ -153,12 +176,12 @@ export default function Footer() {
                                 </h4>
                                 <ul className="mt-5 space-y-3">
                                     {col.links.map((link) => (
-                                        <li key={link}>
+                                        <li key={link.name}>
                                             <a
-                                                href="#"
+                                                href={link.href}
                                                 className="text-sm font-medium text-neutral-400 transition-colors hover:text-white"
                                             >
-                                                {link}
+                                                {link.name}
                                             </a>
                                         </li>
                                     ))}

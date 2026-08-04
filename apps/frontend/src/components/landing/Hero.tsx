@@ -220,7 +220,9 @@ export default function Hero({ models }: { models: Model[] }) {
                                     <span className="text-yellow-300">{"fetch"}</span>
                                     <span className="text-white">{"(\n"}</span>
                                     <span className="text-emerald-400">
-                                        {'  "https://routerone.ai/api/v1/chat"'}
+                                        {
+                                            '  "https://routeroneai.vercel.app/api/v1/chat/completions"'
+                                        }
                                     </span>
                                     <span className="text-white">{",\n  { "}</span>
                                     <span className="text-white">{"method: "}</span>
@@ -230,7 +232,7 @@ export default function Hero({ models }: { models: Model[] }) {
                                     <span className="text-white">{"({\n"}</span>
                                     <span className="text-white">{"      model: "}</span>
                                     <span className="text-emerald-400">
-                                        {'"anthropic/claude-sonnet-4-5"'}
+                                        {'"google/gemini-2.5-pro"'}
                                     </span>
                                     <span className="text-white">
                                         {",\n      messages: [{ role: "}
