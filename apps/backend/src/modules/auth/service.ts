@@ -4,20 +4,33 @@ import { sendEmailOTP } from "../../utils/sendEmailOTP.js"
 
 export abstract class AuthService {
     static async signup(email: string, password: string): Promise<void> {
+        console.log("[SIGNUP] 1. Checking existing user")
+
         const existingUser = await prisma.user.findFirst({
             where: {
                 email: email.toLowerCase(),
             },
         })
 
+        console.log("[SIGNUP] 2. Existing user check completed")
+
         if (existingUser) {
             throw new Error("User with this email already exists")
         }
 
+        console.log("[SIGNUP] 3. Generating OTP")
+
         const otp = await generateOTP()
 
+        console.log("[SIGNUP] 4. Hashing password")
+
         const hashedPassword = await Bun.password.hash(password)
+
+        console.log("[SIGNUP] 5. Hashing OTP")
+
         const otpHash = await Bun.password.hash(otp)
+
+        console.log("[SIGNUP] 6. Saving pending user")
 
         await prisma.pendingUser.upsert({
             where: {
@@ -36,9 +49,14 @@ export abstract class AuthService {
             },
         })
 
-        await sendEmailOTP(email, otp)
-    }
+        console.log("[SIGNUP] 7. Pending user saved")
 
+        console.log("[SIGNUP] 8. Sending OTP email")
+
+        await sendEmailOTP(email, otp)
+
+        console.log("[SIGNUP] 9. OTP email sent successfully")
+    }
     static async signin(
         email: string,
         password: string,

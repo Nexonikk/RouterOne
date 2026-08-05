@@ -28,11 +28,21 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
     }
 
     try {
+        console.log("[MAILJET] Sending email...")
+
         const result = await client.post("send", { version: "v3.1" }).request(payload)
 
-        console.log("Email sent:", result.body)
-    } catch (error: any) {
-        console.error("Mailjet error:", error?.statusCode, error?.response?.body ?? error)
+        console.log("[MAILJET] Email sent successfully")
+        console.log("[MAILJET] Response:", result.body)
+    } catch (error: unknown) {
+        console.error("[MAILJET] EMAIL FAILED")
+
+        if (error instanceof Error) {
+            console.error("[MAILJET] Message:", error.message)
+            console.error("[MAILJET] Stack:", error.stack)
+        } else {
+            console.error("[MAILJET] Unknown error:", error)
+        }
 
         throw error
     }

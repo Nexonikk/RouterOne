@@ -19,10 +19,21 @@ export const app = new Elysia({ prefix: "auth" })
                     message: "OTP sent successfully",
                 }
             } catch (e) {
-                console.log(e)
+                console.error("========== SIGNUP ERROR ==========")
+
+                if (e instanceof Error) {
+                    console.error("Message:", e.message)
+                    console.error("Name:", e.name)
+                    console.error("Stack:", e.stack)
+                } else {
+                    console.error("Unknown error:", e)
+                }
+
+                console.error("==================================")
+
                 return status(400, {
                     message: "Error while signing up",
-                }).response
+                })
             }
         },
         {
