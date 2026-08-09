@@ -8,7 +8,8 @@ import { createContext, useContext } from "react"
 // `apps/web` + `apps/backend`.
 import type { App } from "@routerone/backend"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000"
+// The API URL MUST be absolute and point to the Next.js rewrite proxy
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api-proxy"
 
 export const client = treaty<App>(API_URL, {
     fetch: {

@@ -2,14 +2,14 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
-
-    // Allows importing types (and only types) from the backend workspace package.
     transpilePackages: [],
 
     async rewrites() {
         return [
             {
-                source: "/api/:path*",
+                // Intercept any request to /api-proxy/... on the frontend
+                source: "/api-proxy/:path*",
+                // Forward it transparently to the Elysia backend
                 destination: "https://routeronebackend.vercel.app/:path*",
             },
         ]
