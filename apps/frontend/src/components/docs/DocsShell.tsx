@@ -8,6 +8,7 @@ import DocsTableOfContents from "@/components/docs/DocsTableOfContents"
 import DocsTopTabs from "@/components/docs/DocsTopTabs"
 import type { DocsPage, DocsSection, SidebarGroup } from "@/types/docs"
 import { useEffect, useState } from "react"
+import DocsPagination from "./DocsPagination"
 
 const CONTENT_HEIGHT = "h-[calc(100vh-7rem)]"
 
@@ -67,12 +68,16 @@ export default function DocsShell({
                         className={`min-w-0 flex-1 overflow-y-auto hide-scrollbar px-0 py-8 lg:px-10 ${CONTENT_HEIGHT}`}
                     >
                         <DocsMobileNav groups={sidebarGroups} activeSlug={page.slug} />
+
                         <DocsPageHeader
                             eyebrow={page.eyebrow}
                             title={page.title}
                             description={page.description}
                         />
+
                         <DocsBlockRenderer blocks={page.blocks} />
+                        <DocsPagination groups={sidebarGroups} activeSlug={page.slug} />
+
                         <div className="h-16" />
                     </main>
                     <DocsTableOfContents items={page.toc} activeId={activeSection} />
