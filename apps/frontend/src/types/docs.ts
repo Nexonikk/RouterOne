@@ -58,6 +58,7 @@ export type ContentBlock =
     | { type: "callout"; tone: "info" | "warning"; text: string; href?: string }
     | { type: "code"; language: string; filename?: string; code: string }
     | { type: "list"; items: string[] }
+    | { type: "faq"; items: { question: string; answer: string }[] }
 
 export interface DocsPage {
     slug: string

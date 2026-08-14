@@ -1,6 +1,7 @@
 import ApproachTable from "@/components/docs/ApproachTable"
 import CodeBlock from "@/components/docs/CodeBlock"
 import InfoCallout from "@/components/docs/InfoCallout"
+import FAQAccordion from "./FAQAccordion"
 import type { ContentBlock } from "@/types/docs"
 
 export default function DocsBlockRenderer({ blocks }: { blocks: ContentBlock[] }) {
@@ -20,6 +21,7 @@ function DocsBlock({ block }: { block: ContentBlock }) {
 
         case "heading": {
             const Tag = block.depth === 2 ? "h2" : "h3"
+
             return (
                 <Tag
                     id={block.id}
@@ -33,6 +35,9 @@ function DocsBlock({ block }: { block: ContentBlock }) {
                 </Tag>
             )
         }
+
+        case "faq":
+            return <FAQAccordion items={block.items} />
 
         case "table":
             return <ApproachTable rows={block.rows} />

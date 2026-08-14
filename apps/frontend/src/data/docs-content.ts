@@ -372,44 +372,45 @@ console.log(completion)`,
         slug: "models",
         eyebrow: "Models & Routing",
         title: "Models",
-        description: "Browse available models and how they're grouped.",
+        description: "Browse available models and discover the model IDs supported by RouterOne.",
         toc: [
             { id: "model-families", label: "Model families", depth: 1 },
             { id: "choosing-a-model", label: "Choosing a model", depth: 1 },
-            { id: "aliases", label: "Aliases and version pinning", depth: 1 },
+            { id: "supported-models", label: "Getting supported models", depth: 1 },
         ],
         blocks: [
             {
                 type: "paragraph",
-                text: 'Models are addressed as "publisher/model-name", the same convention across every provider, so switching families is a string change in your request.',
+                text: 'Models are addressed using a "publisher/model-name" slug. Use the model slug returned by the Models API when making requests, so your application always works with the models currently supported by RouterOne.',
             },
             { type: "heading", depth: 2, id: "model-families", text: "Model families" },
             {
                 type: "list",
                 items: [
-                    "Frontier — highest capability, priced per the underlying provider, best for complex reasoning.",
-                    "Balanced — strong quality at a lower cost, the default for most production traffic.",
-                    "Fast — smallest latency, best for high-volume or interactive use cases.",
+                    "Frontier — highest capability, best for complex reasoning and demanding workloads.",
+                    "Balanced — strong quality at a lower cost, suitable for most production traffic.",
+                    "Fast — optimized for low latency and high-volume or interactive use cases.",
                 ],
             },
             { type: "heading", depth: 2, id: "choosing-a-model", text: "Choosing a model" },
             {
                 type: "paragraph",
-                text: "Start with a Balanced model, measure quality against your task, and move up to Frontier only for the fraction of requests that need it — most traffic doesn't.",
+                text: "Start by requesting the supported models and choose a model based on your application's quality, latency, and cost requirements. Use the model's slug in your API requests.",
             },
-            { type: "heading", depth: 2, id: "aliases", text: "Aliases and version pinning" },
+            { type: "heading", depth: 2, id: "supported-models", text: "Getting supported models" },
             {
                 type: "paragraph",
-                text: "An alias like meta/llama-3.1-70b always resolves to the current recommended build. Pin an exact version with a date suffix if you need output to stay fixed across a provider update.",
+                text: "Use the Models API to retrieve the models currently available through RouterOne. The response includes each model's ID, display name, slug, and provider information.",
             },
             {
                 type: "code",
-                language: "json",
-                filename: "model-ids.json",
-                code: `{
-  "alias": "meta/llama-3.1-70b",
-  "pinned": "meta/llama-3.1-70b@2026-05-01"
-}`,
+                language: "bash",
+                filename: "get-models.sh",
+                code: `curl https://routeronebackend.vercel.app/models`,
+            },
+            {
+                type: "paragraph",
+                text: "Use the slug from the response as the model identifier in your requests. Because the list is returned by the API, you can discover newly supported models without hardcoding the available model list in your application.",
             },
         ],
     },
@@ -418,28 +419,156 @@ console.log(completion)`,
         slug: "faqs",
         eyebrow: "Overview",
         title: "FAQs",
-        description: "Answers to the questions we get most.",
+        description: "Everything you need to know about using RouterOne.",
         toc: [
-            { id: "billing", label: "Billing", depth: 1 },
+            { id: "getting-started", label: "Getting started", depth: 1 },
+            { id: "models-providers", label: "Models & providers", depth: 1 },
+            { id: "api-keys", label: "API keys", depth: 1 },
+            { id: "billing", label: "Credits & billing", depth: 1 },
             { id: "reliability", label: "Reliability", depth: 1 },
             { id: "data-handling", label: "Data handling", depth: 1 },
         ],
         blocks: [
-            { type: "heading", depth: 2, id: "billing", text: "Billing" },
             {
-                type: "paragraph",
-                text: "You're billed per request at the price of whichever provider actually served it, visible in each response — there's no separate subscription tier for routing itself.",
+                type: "heading",
+                depth: 2,
+                id: "getting-started",
+                text: "Getting started",
             },
-            { type: "heading", depth: 2, id: "reliability", text: "Reliability" },
             {
-                type: "paragraph",
-                text: "Each model has multiple upstream providers where possible. If your primary provider is degraded, the request fails over automatically within the same call.",
+                type: "faq",
+                items: [
+                    {
+                        question: "What is RouterOne?",
+                        answer: "RouterOne provides a single OpenAI-compatible API for accessing multiple AI models and providers. Instead of integrating with each provider separately, you can change your base URL and model name and use the same request format.",
+                    },
+                    {
+                        question: "How do I make my first request?",
+                        answer: "Create an account, add credits, generate an API key, and send a request to the /api/v1/chat/completions endpoint using your API key. RouterOne handles the provider-specific request behind the scenes.",
+                    },
+                    {
+                        question: "Is RouterOne compatible with OpenAI SDKs?",
+                        answer: "Yes. RouterOne follows an OpenAI-compatible chat completions interface, allowing existing OpenAI-compatible clients and SDKs to work by changing the base URL and model.",
+                    },
+                ],
             },
-            { type: "heading", depth: 2, id: "data-handling", text: "Data handling" },
+
             {
-                type: "paragraph",
-                text: "Requests are proxied, not stored, by default. Providers may apply their own retention policies, listed per-provider on the Models page.",
+                type: "heading",
+                depth: 2,
+                id: "models-providers",
+                text: "Models & providers",
             },
+            {
+                type: "faq",
+                items: [
+                    {
+                        question: "Which AI providers does RouterOne support?",
+                        answer: "RouterOne is designed to route requests across multiple providers, including OpenAI, Google Gemini, and Anthropic Claude. Available providers and models depend on what is currently configured and supported by RouterOne.",
+                    },
+                    {
+                        question: "How do I choose a model?",
+                        answer: "Pass the model identifier in your request, such as google/gemini-2.5-pro. RouterOne uses the model and provider configuration to determine how the request should be handled.",
+                    },
+                    {
+                        question: "Do I need a separate API key for every provider?",
+                        answer: "No. Your RouterOne API key is the credential you use to access the RouterOne API. Provider credentials are managed by RouterOne and are not required in your application code.",
+                    },
+                ],
+            },
+
+            {
+                type: "heading",
+                depth: 2,
+                id: "api-keys",
+                text: "API keys",
+            },
+            {
+                type: "faq",
+                items: [
+                    {
+                        question: "What is a RouterOne API key?",
+                        answer: "Your API key authenticates requests to RouterOne and associates API usage with your account. Keep your key private and never expose it in client-side applications or public repositories.",
+                    },
+                    {
+                        question: "Can I disable an API key?",
+                        answer: "Yes. API keys can be disabled from your dashboard. Disabled or deleted keys cannot be used to make requests.",
+                    },
+                    {
+                        question: "Where should I store my API key?",
+                        answer: "Store it as a server-side environment variable or secret. Do not hard-code it into frontend code, mobile applications, Git repositories, or publicly accessible websites.",
+                    },
+                ],
+            },
+
+            {
+                type: "heading",
+                depth: 2,
+                id: "billing",
+                text: "Credits & billing",
+            },
+            {
+                type: "faq",
+                items: [
+                    {
+                        question: "How does RouterOne billing work?",
+                        answer: "RouterOne uses credits to track API usage. Requests consume credits based on the model and provider used, so your balance reflects the usage generated by your API requests.",
+                    },
+                    {
+                        question: "Do I need a subscription?",
+                        answer: "No subscription is required to use the API. You can purchase credits and use them across supported models and providers.",
+                    },
+                    {
+                        question: "How can I track my usage?",
+                        answer: "Your dashboard keeps track of your available credits and API key usage, allowing you to see how much of your balance has been consumed.",
+                    },
+                ],
+            },
+
+            {
+                type: "heading",
+                depth: 2,
+                id: "reliability",
+                text: "Reliability",
+            },
+            {
+                type: "faq",
+                items: [
+                    {
+                        question: "What happens if a provider is unavailable?",
+                        answer: "RouterOne can select from the providers configured for a model. This allows requests to be routed through another available provider when multiple providers are configured for the same model.",
+                    },
+                    {
+                        question: "Does RouterOne change my prompts?",
+                        answer: "No. RouterOne acts as an API gateway and passes your request to the selected model provider using the supported request format.",
+                    },
+                ],
+            },
+
+            {
+                type: "heading",
+                depth: 2,
+                id: "data-handling",
+                text: "Data handling",
+            },
+            {
+                type: "faq",
+                items: [
+                    {
+                        question: "Does RouterOne store my prompts and responses?",
+                        answer: "RouterOne processes requests through its API infrastructure. Application-level usage and conversation information may be recorded for account, usage, and billing purposes. Check the privacy policy for the latest details about data retention.",
+                    },
+                    {
+                        question: "Are my API keys shared with model providers?",
+                        answer: "No. Your RouterOne API key is used to authenticate with RouterOne and is not intended to be passed to upstream model providers.",
+                    },
+                    {
+                        question: "Should I send sensitive information through RouterOne?",
+                        answer: "Avoid sending highly sensitive or confidential information unless you have reviewed RouterOne's privacy policy and the relevant provider's data-handling policies.",
+                    },
+                ],
+            },
+
             {
                 type: "callout",
                 tone: "info",
