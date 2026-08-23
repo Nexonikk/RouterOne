@@ -8,13 +8,15 @@ datasource db {
 }
 
 model User {
-  id                 Int                 @id @default(autoincrement())
-  email              String              @unique
-  password           String
-  credits            Int                 @default(1000)
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  credits  Int    @default(1000)
+
   apiKeys            ApiKey[]
   onrampTransactions OnrampTransaction[]
   conversations      Conversation[]
+  usages             Usage[]
 }
 
 model PendingUser {
@@ -27,51 +29,67 @@ model PendingUser {
 }
 
 model ApiKey {
-  id              Int            @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   userId          Int
   name            String
-  apiKey          String         @unique
-  disabled        Boolean        @default(false)
-  deleted         Boolean        @default(false)
+  apiKey          String    @unique
+  disabled        Boolean   @default(false)
+  deleted         Boolean   @default(false)
   lastUsed        DateTime?
-  creditsConsumed Int            @default(0)
-  user            User           @relation(fields: [userId], references: [id])
-  conversations   Conversation[]
+  creditsConsumed Int       @default(0)
+
+  user          User           @relation(fields: [userId], references: [id])
+  conversations Conversation[]
+  usages        Usage[]
+
+  @@index([userId])
 }
 
 model Company {
-  id      Int     @id @default(autoincrement())
+  id      Int    @id @default(autoincrement())
   name    String
   website String
-  logo    String  @default("")
-  models  Model[]
+  logo    String @default("")
+
+  models Model[]
 }
 
 model Model {
-  id                    Int                    @id @default(autoincrement())
-  name                  String
-  slug                  String
-  companyId             Int
+  id        Int    @id @default(autoincrement())
+  name      String
+  slug      String
+  companyId Int
+
   company               Company                @relation(fields: [companyId], references: [id])
   modelProviderMappings ModelProviderMapping[]
+
+  @@index([companyId])
 }
 
 model Provider {
-  id                    Int                    @id @default(autoincrement())
-  name                  String
-  website               String
+  id      Int    @id @default(autoincrement())
+  name    String
+  website String
+
   modelProviderMappings ModelProviderMapping[]
 }
 
 model ModelProviderMapping {
-  id              Int            @id @default(autoincrement())
+  id              Int @id @default(autoincrement())
   modelId         Int
   providerId      Int
   inputTokenCost  Int
   outputTokenCost Int
-  model           Model          @relation(fields: [modelId], references: [id])
-  provider        Provider       @relation(fields: [providerId], references: [id])
-  conversations   Conversation[]
+
+  model    Model    @relation(fields: [modelId], references: [id])
+  provider Provider @relation(fields: [providerId], references: [id])
+
+  conversations Conversation[]
+  usages        Usage[]
+  usageAttempts UsageAttempt[]
+
+  @@index([modelId])
+  @@index([providerId])
 }
 
 model OnrampTransaction {
@@ -79,19 +97,103 @@ model OnrampTransaction {
   userId Int
   amount Int
   status String
-  user   User   @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Usage {
+  id Int @id @default(autoincrement())
+
+  // Unique identifier for this RouterOne API request
+  requestId String @unique
+
+  // Ownership
+  userId   Int
+  apiKeyId Int
+
+  // Requested model + mapping
+  modelProviderMappingId Int
+
+  // Token usage
+  inputTokenCount  Int @default(0)
+  outputTokenCount Int @default(0)
+  totalTokenCount  Int @default(0)
+
+  // RouterOne billing
+  creditsConsumed Int @default(0)
+
+  // Request metadata
+  status    String
+  latencyMs Int?
+  streaming Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  user                 User                 @relation(fields: [userId], references: [id])
+  apiKey               ApiKey               @relation(fields: [apiKeyId], references: [id])
+  modelProviderMapping ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
+
+  // Optional actual prompt/response record
+  conversation Conversation?
+
+  // Every provider attempt, including fallbacks
+  attempts UsageAttempt[]
+
+  @@index([userId, createdAt])
+  @@index([apiKeyId, createdAt])
+  @@index([modelProviderMappingId, createdAt])
+  @@index([createdAt])
+}
+
+model UsageAttempt {
+  id                     Int    @id @default(autoincrement())
+  usageId                Int
+  modelProviderMappingId Int
+  attemptNumber          Int
+  status                 String
+
+  latencyMs Int?
+  error     String?
+
+  inputTokenCount  Int?
+  outputTokenCount Int?
+
+  createdAt DateTime @default(now())
+
+  usage                Usage                @relation(fields: [usageId], references: [id])
+  modelProviderMapping ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
+
+  @@index([usageId])
+  @@index([modelProviderMappingId, createdAt])
 }
 
 model Conversation {
-  id                     Int                  @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
+  // Link conversation to the usage event
+  usageId Int? @unique
+
   userId                 Int
   apiKeyId               Int
   modelProviderMappingId Int
-  input                  String
-  output                 String
-  inputTokenCount        Int
-  outputTokenCount       Int
-  user                   User                 @relation(fields: [userId], references: [id])
-  apiKey                 ApiKey               @relation(fields: [apiKeyId], references: [id])
-  modelProviderMapping   ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
+
+  input  String
+  output String
+
+  inputTokenCount  Int @default(0)
+  outputTokenCount Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  usage                Usage?               @relation(fields: [usageId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id])
+  apiKey               ApiKey               @relation(fields: [apiKeyId], references: [id])
+  modelProviderMapping ModelProviderMapping @relation(fields: [modelProviderMappingId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([apiKeyId, createdAt])
+  @@index([modelProviderMappingId, createdAt])
+  @@index([createdAt])
 }
