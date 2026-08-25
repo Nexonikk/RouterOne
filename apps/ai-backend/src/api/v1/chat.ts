@@ -4,204 +4,260 @@ import { prisma } from "db"
 import { Conversation } from "../../types.js"
 import { callWithFallback } from "../../utils/fallback.js"
 
-export const chatRoutes = new Elysia({ prefix: "/chat" })
-    .use(bearer())
+export const chatRoutes = new Elysia({ prefix: "/chat" }).use(bearer()).post(
+    "/completions",
+    async ({ status, bearer: apiKey, body }) => {
+        const requestStartedAt = Date.now()
 
-    .post(
-        "/completions",
-        async ({ status, bearer: apiKey, body }) => {
-            const requestStartedAt = Date.now()
+        const model = body.model
+        const [_companyName, providerModelName] = model.split("/")
 
-            const model = body.model
-            const [_companyName, providerModelName] = model.split("/")
+        // --------------------------------------------------
+        // 1. Authenticate API key
+        // --------------------------------------------------
 
-            // 1. Authenticate API key
+        const apiKeyDb = await prisma.apiKey.findFirst({
+            where: {
+                apiKey,
+                disabled: false,
+                deleted: false,
+            },
+            select: {
+                id: true,
+                user: true,
+            },
+        })
 
-            const apiKeyDb = await prisma.apiKey.findFirst({
-                where: {
-                    apiKey,
-                    disabled: false,
-                    deleted: false,
-                },
-                select: {
-                    id: true,
-                    user: true,
-                },
+        if (!apiKeyDb) {
+            return status(403, {
+                message: "Invalid api key",
             })
+        }
 
-            if (!apiKeyDb) {
-                return status(403, {
-                    message: "Invalid api key",
-                })
-            }
-
-            if (apiKeyDb.user.credits <= 0) {
-                return status(403, {
-                    message: "You dont have enough credits in your db",
-                })
-            }
-
-            // 2. Find requested model
-
-            const modelDb = await prisma.model.findFirst({
-                where: {
-                    slug: model,
-                },
+        // IMPORTANT:
+        // Don't rely on this for final billing protection.
+        // The final credit check happens atomically later.
+        if (apiKeyDb.user.credits <= 0) {
+            return status(403, {
+                message: "You dont have enough credits in your db",
             })
+        }
 
-            if (!modelDb) {
-                return status(403, {
-                    message: "This is an invalid model we dont support",
-                })
-            }
+        // --------------------------------------------------
+        // 2. Find requested model
+        // --------------------------------------------------
 
-            // 3. Find provider mappings
+        const modelDb = await prisma.model.findFirst({
+            where: {
+                slug: model,
+            },
+        })
 
-            const providers = await prisma.modelProviderMapping.findMany({
-                where: {
-                    modelId: modelDb.id,
-                },
-                include: {
-                    provider: true,
-                },
+        if (!modelDb) {
+            return status(403, {
+                message: "This is an invalid model we dont support",
             })
+        }
 
-            if (providers.length === 0) {
-                return status(400, {
-                    message: "No provider configured for this model",
-                })
-            }
+        // --------------------------------------------------
+        // 3. Find provider mappings
+        // --------------------------------------------------
 
-            // 4. Pick primary provider
+        const providers = await prisma.modelProviderMapping.findMany({
+            where: {
+                modelId: modelDb.id,
+            },
+            include: {
+                provider: true,
+            },
+        })
 
-            const provider = providers[Math.floor(Math.random() * providers.length)]
-
-            // 5. Create Usage record
-
-            const requestId = crypto.randomUUID()
-
-            const usage = await prisma.usage.create({
-                data: {
-                    requestId,
-
-                    userId: apiKeyDb.user.id,
-                    apiKeyId: apiKeyDb.id,
-
-                    modelProviderMappingId: provider.id,
-
-                    status: "pending",
-                    streaming: false,
-                },
+        if (providers.length === 0) {
+            return status(400, {
+                message: "No provider configured for this model",
             })
+        }
 
-            // 6. Call provider + fallback
+        // --------------------------------------------------
+        // 4. Pick primary provider
+        // --------------------------------------------------
 
-            const result = await callWithFallback(
-                provider.provider.name,
-                model,
-                providerModelName,
-                body.messages,
-            )
+        const provider = providers[Math.floor(Math.random() * providers.length)]
 
-            // 7. All providers failed
+        // --------------------------------------------------
+        // 5. Create Usage record
+        // --------------------------------------------------
 
-            if (!result) {
-                const latencyMs = Date.now() - requestStartedAt
+        const requestId = crypto.randomUUID()
 
-                await prisma.usage.update({
-                    where: {
-                        id: usage.id,
-                    },
-                    data: {
-                        status: "failed",
-                        latencyMs,
-                    },
-                })
+        const usage = await prisma.usage.create({
+            data: {
+                requestId,
 
-                return status(503, {
-                    message: "All providers failed",
-                    requestId,
-                })
-            }
+                userId: apiKeyDb.user.id,
+                apiKeyId: apiKeyDb.id,
 
-            // 8. Final successful response
+                modelProviderMappingId: provider.id,
 
-            const response = result.response
+                status: "pending",
+                streaming: false,
+            },
+        })
 
-            const inputTokens = response.inputTokensConsumed
-            const outputTokens = response.outputTokensConsumed
-            const totalTokens = inputTokens + outputTokens
+        // --------------------------------------------------
+        // 6. Call provider + fallback
+        // --------------------------------------------------
 
-            // 9. Find the ACTUAL successful mapping
+        const result = await callWithFallback(
+            provider.provider.name,
+            model,
+            providerModelName,
+            body.messages,
+        )
 
-            const successfulAttempt = [...result.attempts]
-                .reverse()
-                .find((attempt) => attempt.status === "success")
+        // --------------------------------------------------
+        // 7. All providers failed
+        // --------------------------------------------------
 
-            if (!successfulAttempt) {
-                await prisma.usage.update({
-                    where: {
-                        id: usage.id,
-                    },
-                    data: {
-                        status: "failed",
-                        latencyMs: Date.now() - requestStartedAt,
-                    },
-                })
-
-                return status(503, {
-                    message: "No successful provider attempt",
-                    requestId,
-                })
-            }
-
-            // 10. Find DB mapping of successful provider/model
-
-            const successfulMapping = await prisma.modelProviderMapping.findFirst({
-                where: {
-                    model: {
-                        slug: successfulAttempt.modelSlug,
-                    },
-                    provider: {
-                        name: successfulAttempt.providerName,
-                    },
-                },
-            })
-
-            if (!successfulMapping) {
-                await prisma.usage.update({
-                    where: {
-                        id: usage.id,
-                    },
-                    data: {
-                        status: "failed",
-                        latencyMs: Date.now() - requestStartedAt,
-                    },
-                })
-
-                return status(500, {
-                    message: "Successful provider mapping not found",
-                    requestId,
-                })
-            }
-
-            // 11. Calculate credits
-
-            const rawCreditsUsed =
-                (inputTokens * successfulMapping.inputTokenCost +
-                    outputTokens * successfulMapping.outputTokenCost) /
-                10
-
-            // Since your schema uses Int for credits:
-            const creditsUsed = Math.ceil(rawCreditsUsed)
-
+        if (!result) {
             const latencyMs = Date.now() - requestStartedAt
 
-            // --------------------------------------------------
-            // 12. Save everything atomically
-            // --------------------------------------------------
+            await prisma.usage.update({
+                where: {
+                    id: usage.id,
+                },
+                data: {
+                    status: "failed",
+                    latencyMs,
+                },
+            })
 
+            return status(503, {
+                message: "All providers failed",
+                requestId,
+            })
+        }
+
+        // --------------------------------------------------
+        // 8. Final successful response
+        // --------------------------------------------------
+
+        const response = result.response
+
+        const inputTokens = response.inputTokensConsumed
+
+        const outputTokens = response.outputTokensConsumed
+
+        const totalTokens = inputTokens + outputTokens
+
+        // --------------------------------------------------
+        // 9. Find actual successful attempt
+        // --------------------------------------------------
+
+        const successfulAttempt = [...result.attempts]
+            .reverse()
+            .find((attempt) => attempt.status === "success")
+
+        if (!successfulAttempt) {
+            await prisma.usage.update({
+                where: {
+                    id: usage.id,
+                },
+                data: {
+                    status: "failed",
+                    latencyMs: Date.now() - requestStartedAt,
+                },
+            })
+
+            return status(503, {
+                message: "No successful provider attempt",
+                requestId,
+            })
+        }
+
+        // --------------------------------------------------
+        // 10. Find pricing mapping of actual
+        // successful provider/model
+        // --------------------------------------------------
+
+        const successfulMapping = await prisma.modelProviderMapping.findFirst({
+            where: {
+                model: {
+                    slug: successfulAttempt.modelSlug,
+                },
+                provider: {
+                    name: successfulAttempt.providerName,
+                },
+            },
+        })
+
+        if (!successfulMapping) {
+            await prisma.usage.update({
+                where: {
+                    id: usage.id,
+                },
+                data: {
+                    status: "failed",
+                    latencyMs: Date.now() - requestStartedAt,
+                },
+            })
+
+            return status(500, {
+                message: "Successful provider mapping not found",
+                requestId,
+            })
+        }
+
+        // --------------------------------------------------
+        // 11. Calculate credits
+        //
+        // inputTokenCost/outputTokenCost are assumed
+        // to mean RouterOne credits per 1,000,000 tokens.
+        // --------------------------------------------------
+
+        const rawCreditsUsed =
+            (inputTokens * successfulMapping.inputTokenCost +
+                outputTokens * successfulMapping.outputTokenCost) /
+            1_000
+
+        const creditsUsed = Math.max(1, Math.ceil(rawCreditsUsed))
+
+        const latencyMs = Date.now() - requestStartedAt
+
+        // --------------------------------------------------
+        // 12. Atomic billing + usage transaction
+        // --------------------------------------------------
+
+        try {
             await prisma.$transaction(async (tx) => {
+                // IMPORTANT:
+                // This prevents credits from ever going negative.
+                //
+                // Example:
+                // balance = 1000
+                // cost = 1590
+                //
+                // WHERE credits >= 1590
+                // → no row updated
+                // → transaction fails
+                const updatedUser = await tx.user.updateMany({
+                    where: {
+                        id: apiKeyDb.user.id,
+                        credits: {
+                            gte: creditsUsed,
+                        },
+                    },
+                    data: {
+                        credits: {
+                            decrement: creditsUsed,
+                        },
+                    },
+                })
+
+                if (updatedUser.count !== 1) {
+                    throw new Error("INSUFFICIENT_CREDITS")
+                }
+
                 // Update Usage
                 await tx.usage.update({
                     where: {
@@ -209,12 +265,15 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                     },
                     data: {
                         inputTokenCount: inputTokens,
+
                         outputTokenCount: outputTokens,
+
                         totalTokenCount: totalTokens,
 
                         creditsConsumed: creditsUsed,
 
                         status: "success",
+
                         latencyMs,
                     },
                 })
@@ -228,6 +287,7 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                             model: {
                                 slug: attempt.modelSlug,
                             },
+
                             provider: {
                                 name: attempt.providerName,
                             },
@@ -259,12 +319,13 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                     })
                 }
 
-                // Save prompt/response
+                // Save conversation
                 await tx.conversation.create({
                     data: {
                         usageId: usage.id,
 
                         userId: apiKeyDb.user.id,
+
                         apiKeyId: apiKeyDb.id,
 
                         modelProviderMappingId: provider.id,
@@ -274,19 +335,8 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                         output: response.completions?.choices?.[0]?.message?.content ?? "",
 
                         inputTokenCount: inputTokens,
-                        outputTokenCount: outputTokens,
-                    },
-                })
 
-                // Deduct user credits
-                await tx.user.update({
-                    where: {
-                        id: apiKeyDb.user.id,
-                    },
-                    data: {
-                        credits: {
-                            decrement: creditsUsed,
-                        },
+                        outputTokenCount: outputTokens,
                     },
                 })
 
@@ -299,16 +349,63 @@ export const chatRoutes = new Elysia({ prefix: "/chat" })
                         creditsConsumed: {
                             increment: creditsUsed,
                         },
+
                         lastUsed: new Date(),
                     },
                 })
             })
+        } catch (error) {
+            // Insufficient balance
+            if (error instanceof Error && error.message === "INSUFFICIENT_CREDITS") {
+                // We already called the provider,
+                // but we refuse to charge or store
+                // this as a successful usage event.
+                await prisma.usage.update({
+                    where: {
+                        id: usage.id,
+                    },
+                    data: {
+                        status: "insufficient_credits",
 
-            // 13. Return OpenAI-compatible response
+                        latencyMs: Date.now() - requestStartedAt,
+                    },
+                })
 
-            return response
-        },
-        {
-            body: Conversation,
-        },
-    )
+                return status(402, {
+                    message: "Not enough credits for this request",
+                    requestId,
+
+                    requiredCredits: creditsUsed,
+
+                    availableCredits: apiKeyDb.user.credits,
+                })
+            }
+
+            console.error("Usage/billing transaction failed:", error)
+
+            await prisma.usage.update({
+                where: {
+                    id: usage.id,
+                },
+                data: {
+                    status: "billing_failed",
+                    latencyMs: Date.now() - requestStartedAt,
+                },
+            })
+
+            return status(500, {
+                message: "Failed to record usage",
+                requestId,
+            })
+        }
+
+        // --------------------------------------------------
+        // 13. Return OpenAI-compatible response
+        // --------------------------------------------------
+
+        return response
+    },
+    {
+        body: Conversation,
+    },
+)
