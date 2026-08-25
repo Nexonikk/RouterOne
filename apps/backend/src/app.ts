@@ -6,6 +6,7 @@ import { app as authApp } from "./modules/auth/index.js"
 import { app as apiKeyApp } from "./modules/apiKeys/index.js"
 import { app as modelsApp } from "./modules/models/index.js"
 import { app as paymentsApp } from "./modules/payments/index.js"
+import { app as usageApp } from "./modules/usage/index.js"
 
 // Use 'const app' but also export it as default
 const app = new Elysia({ adapter: node() })
@@ -24,6 +25,7 @@ const app = new Elysia({ adapter: node() })
     .use(apiKeyApp)
     .use(modelsApp)
     .use(paymentsApp)
+    .use(usageApp)
 
 export type App = typeof app
 
